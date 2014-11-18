@@ -14,7 +14,6 @@ class AnalogButtonControl {
 	protected:
 		int getAnalogValue();
 		int getPressedButton();
-		void updateLastButton();
 		int m_analogValue;
 		int m_pin;
 		int m_lastButton;
