@@ -110,12 +110,11 @@ int AnalogButtonControl::getPressedButton() {
       break;
     }
   }
- 
-  Serial.println(this->m_isReset);
 
   if (button == this->BUTTON_NONE) {
   	if (this->m_time_start > 0) {
    		this->m_time_duration = millis() - this->m_time_start;
+   		this->m_time_current_duration = 0;
    		this->m_time_start = 0;
   	}
 
