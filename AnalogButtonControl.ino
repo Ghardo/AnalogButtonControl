@@ -15,11 +15,11 @@ void setup() {
 
 void loop() {
 
-	if (control.isPullup(BUTTON_BLUE, 2000)) {
+	if (control.isHold(BUTTON_BLUE, 3000)) {
+		Serial.println("BUTTON_BLUE was holded for 3 seconds");
+	} else if (control.isPullup(BUTTON_BLUE, 2000)) {
 		Serial.println("BUTTON_BLUE released after 2 seconds");
-	}
-
-	if (control.isPullup(BUTTON_BLUE)) {
+	} else if (control.isPullup(BUTTON_BLUE)) {
 		Serial.println("BUTTON_BLUE");
 	}
 

@@ -15,46 +15,79 @@ void AnalogButtonControl::addButton(int value, int button_id) {
 	this->m_buttons[this->m_buttonCnt][this->INDEX_BTN_VALUE] = value;
 	this->m_buttons[this->m_buttonCnt][this->INDEX_BTN_ID] = button_id;
 	this->m_buttonCnt++;
+	this->m_isReset = true;
 }
 
 bool AnalogButtonControl::isPulldown(int button_id) {
-	return (this->getPressedButton() == button_id);
+	int button = this->getPressedButton();
+	if (!this->m_isReset) {
+		return false;
+	}
+
+	return (button == button_id);
 }
 
 bool AnalogButtonControl::isPullup(int button_id) {
+	int button = this->getPressedButton();
 	if (this->m_lastButton == this->BUTTON_NONE) {
-		int button = this->getPressedButton();
 		if (button != this->BUTTON_NONE && button == button_id) {
 			this->m_lastButton = button;
 		}
 		return false;
 	} else if (
+			this->m_isReset &&
 			this->m_lastButton == button_id && 
-			this->getPressedButton() == this->BUTTON_NONE
+			button == this->BUTTON_NONE
 		) {
-
-		this->m_lastButton = this->BUTTON_NONE;
+		this->m_isReset = false;
 		return true;
 	}
 
 	return false;
 }
 
-bool AnalogButtonControl::isPullup(int button_id, unsigned long wait) {
+bool AnalogButtonControl::isHold(int button_id, unsigned long wait) {
+	int button = this->getPressedButton();
 	if (this->m_lastButton == this->BUTTON_NONE) {
-		int button = this->getPressedButton();
 		if (button != this->BUTTON_NONE && button == button_id) {
 			this->m_lastButton = button;
 		}
 		return false;
 	} else if (
+			this->m_isReset &&
 			this->m_lastButton == button_id && 
-			this->getPressedButton() == this->BUTTON_NONE &&
+			button == button_id &&
+			this->m_time_current_duration >= wait
+		) {
+
+		this->m_isReset = false;
+		this->m_time_current_duration = 0;
+		this->m_time_duration == 0;
+		this->m_time_start = 0;
+		return true;
+	} 
+
+	return false;
+}
+
+bool AnalogButtonControl::isPullup(int button_id, unsigned long wait) {
+	int button = this->getPressedButton();
+	if (this->m_lastButton == this->BUTTON_NONE) {
+		if (button != this->BUTTON_NONE && button == button_id) {
+			this->m_lastButton = button;
+		}
+		return false;
+	} else if (
+			this->m_isReset &&
+			this->m_lastButton == button_id && 
+			button == this->BUTTON_NONE &&
 			this->m_time_duration >= wait
 		) {
 
+		this->m_isReset = false;
+		this->m_time_current_duration = 0;
 		this->m_time_duration == 0;
-		this->m_lastButton = this->BUTTON_NONE;
+		this->m_time_start = 0;
 		return true;
 	} 
 
@@ -77,14 +110,25 @@ int AnalogButtonControl::getPressedButton() {
       break;
     }
   }
+ 
+  Serial.println(this->m_isReset);
 
   if (button == this->BUTTON_NONE) {
   	if (this->m_time_start > 0) {
    		this->m_time_duration = millis() - this->m_time_start;
    		this->m_time_start = 0;
   	}
+
+  	if (!this->m_isReset) {
+  		this->m_lastButton = this->BUTTON_NONE;
+  		this->m_isReset = true;
+  	}
   	return this->BUTTON_NONE;
   }
+
+  if (this->m_time_start > 0) 
+  	this->m_time_current_duration = millis() - this->m_time_start;
+
 
   delay(10);
 
@@ -98,8 +142,9 @@ int AnalogButtonControl::getPressedButton() {
     }
   }
 
-  if (this->m_time_start == 0 && button != this->BUTTON_NONE)
+  if (this->m_time_start == 0 && button != this->BUTTON_NONE) {
   	this->m_time_start = millis();
+  }
 
   this->m_lastButton = button;
   

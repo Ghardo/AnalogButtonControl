@@ -6,6 +6,7 @@ class AnalogButtonControl {
 		bool isPulldown(int button_id);
 		bool isPullup(int button_id);
 		bool isPullup(int button_id, unsigned long wait);
+		bool isHold(int button_id, unsigned long wait);
 
 		static const int INDEX_BTN_VALUE = 0;
 		static const int INDEX_BTN_ID = 1;
@@ -21,4 +22,6 @@ class AnalogButtonControl {
 		int m_buttonCnt;
 		unsigned long m_time_start;
 		unsigned long m_time_duration;
+		unsigned long m_time_current_duration;
+		bool m_isReset;
 };
